@@ -1,5 +1,89 @@
 # Change Log
 
+## Unreleased
+
+### New agent: ModelCardAgent (`#fm`)
+
+- Added `ModelCardAgent`, which recognizes scientific foundation-model cards,
+  reads a user's requirements, recommends models with explained scores, and runs
+  the chosen model through its MCP tool or the `ExecutionAgent`. The TUI exposes
+  it as `#fm`, and the dashboard lists it as "Foundation Model Advisor".
+- Added the `ursa.model_cards` package. It reads Hugging Face repositories,
+  URLs, local files, MCP servers such as Nomad, and URSA-native YAML cards in the
+  Hugging Face, DOE Genesis, NVIDIA Model Card++, and free-form dialects. Cards
+  become one normalized `ModelCard` with exact input and output formats,
+  provenance for key facts, conflict and quality issues, and a completeness
+  score. LLM refinement adds facts only with quotes checked against the card;
+  a changed number never passes the check.
+- Added a physics taxonomy with domain and task vocabularies that span the
+  geosciences, continuum physics, plasma and space physics, astrophysics,
+  materials, chemistry, and biomolecules; teams can extend it from
+  configuration.
+- Added explainable model ranking with weighted criteria, hard blockers for
+  license, hardware, and size limits, and an evidence-bound LLM review.
+- `ModelCardAgent` discovers models on every connected MCP server that offers
+  `get_model_card`, even when several servers use that tool name;
+  `load_mcp_tools_by_server` keeps MCP tools grouped by server. Discovered
+  cards keep the deterministic reading, so the first answer needs no LLM call
+  per model; `refine_discovered=True` adds the LLM review.
+- In the dashboard, the agent reads only the newest message of the session
+  transcript as the request and resolves "the top model" from the previous
+  report, so an earlier run is never repeated; `ursa-dashboard --use-web` now
+  enables its Hugging Face search.
+- The agent answers questions about the catalog and the user's data: how many
+  models the catalog holds and which match a filter, which models can use a
+  data file, and whether a model can run inference on that data as is, after a
+  stated conversion, or only after fine-tuning. Each answer starts with a
+  verdict and cites the card lines and data facts behind it. A model runs only
+  when a sentence of the request orders it, and a tool that takes one molecule
+  or sequence runs once per item of the user's file.
+- Added `ursa.model_cards.data`, which reads NetCDF, HDF5 (including The Well),
+  NumPy, MATLAB, CSV, SMILES, FASTA, XYZ, CIF, PDB, image, and JSON files into a
+  `DataProfile`, and `ursa.model_cards.compat`, which checks a profile against a
+  card and picks the pathway. Cards now record the size and range of their
+  training data (`training_scope`), so an answer warns when data lie outside
+  that range.
+- Added ten curated inference tasks for Nomad's demo server, with data, a
+  scoring script, and figures, in `examples/model_cards/curated_tasks`.
+- Added a shared group model catalog and five LangChain tools
+  (`model_card_tools()`) that give any tool-using agent model-card skills.
+- `TorchModuleTool` accepts a `model_card` and serves it through a
+  Nomad-compatible `get_model_card` tool, so `ModelCardAgent` discovers models
+  served by URSA and by Nomad in the same way.
+- Added the `examples/model_cards` tutorial with a toy physics model served
+  over MCP, a native card template, and a recognition benchmark of 24 public
+  cards, plus documentation in `docs/agents/model-cards.md`.
+
+### Fixes
+
+- On Claude models, `invoke_structured` now tries Claude's native structured
+  output (`method="json_schema"`) first for small schemas without nullable
+  fields. Claude Opus 5.5, Sonnet 5.5, and Fable 5.1 reject forced tool calls,
+  so LangChain's default structured output became an optional tool call that
+  the model could skip, which cost retries. Larger schemas keep the previous
+  methods: the API took three minutes to reject the requirements schema as
+  "too complex".
+- The dashboard now releases a session whose active run has ended when it
+  starts. A restart during a run marked the run failed but left the session
+  "Running": the page replayed the finished run's log in a loop, and neither
+  "Cancel run" nor "Delete" could free the session.
+- `llm_model.max_completion_tokens` now reaches Anthropic models as
+  `max_tokens`. Under the OpenAI name, it reached the Anthropic API as an
+  unknown field and the request failed.
+- `DeepReviewAgent` emitted no progress events: its module used
+  `from __future__ import annotations`, so LangGraph did not inject the
+  `RunnableConfig` into graph nodes. The module now uses real annotations.
+- `BaseAgent.aclose` now stops the async store's batch worker, which removes
+  "Task was destroyed but it is pending" warnings at shutdown.
+- `TorchModuleTool.batch_as_completed` accepts `max_concurrency`; the
+  misspelled `max_concurency` keyword still works with a deprecation warning.
+  The module's TypeVar names now match their variables, and `name` is typed as
+  optional.
+- Fixed a test in `tests/tools/test_fm_base_tool.py` that checked tool metadata
+  without an `assert`, and a typo in the HITL unknown-agent message.
+- A `BaseAgent` test no longer leaves `graph_store.sqlite` in the current
+  directory; it now runs in a temporary workspace.
+
 ## v0.17.2
 
 Changes since `v0.17.1`:

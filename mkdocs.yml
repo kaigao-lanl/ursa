@@ -101,6 +101,7 @@ nav:
       - Git Go Agent: agents/git-go.md
       - Hypothesizer Agent: agents/hypothesizer.md
       - LAMMPS Agent: agents/lammps.md
+      - Model Card Agent: agents/model-cards.md
       - Planning Agent: agents/planning.md
   - Environments:
       - Overview: environments/index.md
@@ -123,6 +124,7 @@ nav:
       - API Reference:
           - agents: reference/api/agents.md
           - environments: reference/api/environments.md
+          - model_cards: reference/api/model-cards.md
           - prompt_library: reference/api/prompt-library.md
           - tools: reference/api/tools.md
           - util: reference/api/util.md
