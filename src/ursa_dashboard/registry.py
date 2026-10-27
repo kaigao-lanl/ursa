@@ -773,6 +773,77 @@ register(
 )
 
 
+register(
+    AgentEntry(
+        spec=AgentSpec(
+            agent_id="model_card_agent",
+            display_name="Foundation Model Advisor",
+            description="Reads scientific foundation-model cards (Hugging Face, URLs, files, Nomad/MCP servers), recommends models for a physics need with explained rankings, and runs the chosen model.",
+            capabilities=AgentCapabilities(
+                supports_streaming=False,
+                supports_cancellation=False,
+                produces_artifacts=True,
+            ),
+            parameters=[
+                _prompt_param(title="Request, model cards, or both"),
+                AgentParam(
+                    name="catalog_paths",
+                    title="Card folders",
+                    description="Workspace folders or files with model cards to load into the catalog.",
+                    type="array",
+                    required=False,
+                    default=[],
+                    advanced=True,
+                    source=ParamSource.agent_init,
+                    target="catalog_paths",
+                ),
+                AgentParam(
+                    name="use_web",
+                    title="Search Hugging Face",
+                    description="Search the Hugging Face Hub when the catalog has no good match.",
+                    type="boolean",
+                    required=False,
+                    default=False,
+                    advanced=True,
+                    source=ParamSource.agent_init,
+                    target="use_web",
+                ),
+                AgentParam(
+                    name="allow_run",
+                    title="Allow model runs",
+                    description="Let the agent call model tools or the ExecutionAgent when asked to run a model.",
+                    type="boolean",
+                    required=False,
+                    default=True,
+                    advanced=True,
+                    source=ParamSource.agent_init,
+                    target="allow_run",
+                ),
+                AgentParam(
+                    name="top_k",
+                    title="Recommendations",
+                    description="Number of recommendations to report.",
+                    type="integer",
+                    required=False,
+                    default=3,
+                    advanced=True,
+                    source=ParamSource.agent_init,
+                    target="top_k",
+                    constraints=ParamConstraint(minimum=1, maximum=10),
+                ),
+            ]
+            + _common_llm_params()
+            + _runner_params(),
+            tags=["science", "foundation-models", "tools"],
+        ),
+        build_adapter=_baseagent_adapter_builder(
+            "ursa.agents.model_card_agent.ModelCardAgent"
+        ),
+        build_inputs=lambda p: p["prompt"],
+    )
+)
+
+
 # -----------------------------
 # Demo agents (internal / hidden by default)
 # -----------------------------

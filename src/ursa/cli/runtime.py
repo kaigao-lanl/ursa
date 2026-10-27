@@ -218,6 +218,7 @@ class HITL:
             ("dsi", "DSIAgent", "dsi"),
             ("execute", "ExecutionAgent", None),
             ("deep_review", "DeepReviewAgent", None),
+            ("fm", "ModelCardAgent", None),
             ("hypothesize", "HypothesizerAgent", None),
             ("plan", "PlanningAgent", None),
             ("prompt", "PromptingAgent", None),
